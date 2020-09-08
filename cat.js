@@ -1,80 +1,160 @@
 var grid = document.getElementById("grid");
-var buttonMap = new Map();
-var currentRow = 0;
-var numberOfButtons;
-var currentCats = [];
-var currentlySelected;
+var boxMap = new Map();
 
-class Cat{
+var currentRow = 1;
+var numberOfboxes;
 
-    constructor(currentPos){
+var lastSelectedBox;
+var lastSelectedIcon;
+
+class Cat {
+
+    constructor(currentPos) {
         this.currentPos = currentPos;
     }
 
-    getNextPositions(){
-        if(this.currentPos === numberOfButtons){
-            return currentPos -1;
+    getNextPositions() {
+        if (this.currentPos == numberOfboxes) {
+            return [this.currentPos - 1];
         }
-        else if(this.currentPos === 1){
-            return this.currentPos + 1;
+        else if (this.currentPos == 1) {
+            return [this.currentPos + 1];
         }
-        else{
-            return this.currentPos +1, this.currentPos - 1;
+        else {
+            return [this.currentPos + 1, this.currentPos - 1];
         }
     }
-
 }
 
-function fillGrid(numberOfButtons) {
-    for (i = 0; i <= 10; i++) {
-        let buttons = [];
-        for (j = 1; j < numberOfButtons +1; j++) {
-        
+
+function getNextCatPostions(cats) {
+    positions = [];
+    cats.forEach(cat => {
+        cat.getNextPositions().forEach(position => {
+            if (!positions.includes(position)) {
+                positions.push(position);
+            }
+        });
+    });
+    console.log(positions);
+    return positions;
+}
+
+function drawNextCats(positions) {
+    boxes = boxMap.get(currentRow + 1);
+    boxes.forEach(box => {
+        box.addEventListener("click", select);
+        if (positions.includes(getPositionOfBox(box))) {
+            box.innerHTML = "C";
+        }
+    });
+}
+
+function removeListenersFromOldRow() {
+    boxes = boxMap.get(currentRow);
+    boxes.forEach(box => {
+        box.removeEventListener("click", select);
+    });
+}
+
+function fillGrid() {
+    for (i = 1; i <= 15; i++) {
+        let boxes = [];
+        for (j = 1; j < numberOfboxes + 1; j++) {
+
             box = document.createElement("div");
             box.id = "box_row_" + i + "_number_" + j;
             box.className = "box";
-            box.addEventListener("click", click);
-            
-            buttons.push(box);
-            
+            boxes.push(box);
 
             grid.appendChild(box);
         }
-        buttonMap.set(i,buttons)
+        boxMap.set(i, boxes)
     }
 }
 
-function click(event) {
-    console.log(event.srcElement);
-    if (event.ctrlKey) {
-        console.log("ctrl");
-        event.srcElement.innerHTML = "I";
-        currentlySelected = event.srcElement.id.split("_")[4];
+function select(event) {
+    box = event.srcElement;
+    if (lastSelectedBox == undefined) {
+        lastSelectedIcon = box.innerHTML;
+        lastSelectedBox = box;
+        box.innerHTML = "I";
+    }
+    else if (box.innerHTML == "I") {
+        box.innerHTML = lastSelectedIcon;
+        resetLastSelectedBoxAndIcon();
     }
     else {
-        console.log("hello");
-        event.srcElement.innerHTML = "C";
+        lastSelectedBox.innerHTML = lastSelectedIcon;
+        lastSelectedIcon = box.innerHTML;
+        lastSelectedBox = box;
+        box.innerHTML = "I";
     }
 }
 
-function addCats(){
-    buttons = buttonMap.get(currentRow);
-    buttons.forEach(element => {
+function resetLastSelectedBoxAndIcon(){
+    lastSelectedBox = undefined;
+    lastSelectedIcon = undefined;
+}
+
+function initCats() {
+    boxes = boxMap.get(currentRow);
+    boxes.forEach(element => {
+        element.addEventListener("click", select);
         element.innerHTML = "C";
     });
 
-    currentRow += 1;
 }
 
-
-function main(){
-    numberOfButtons = 5;
-    fillGrid(numberOfButtons)
-
-    addCats();
-
+function getPositionOfBox(element) {
+    return parseInt(element.id.split("_")[4]);
 }
 
+function getAllRemainingCats() {
+    currentCats = [];
+    boxes = boxMap.get(currentRow);
+    boxes.forEach(box => {
+        if (box.innerHTML == "C") {
+            cat = new Cat(getPositionOfBox(box));
+            currentCats.push(cat);
+        }
+    });
+    return currentCats;
+}
+
+function next(event) {
+    if (event.keyCode === 13) {
+        console.log("enter");
+
+        cats = getAllRemainingCats();
+
+        if (cats.length < 1) {
+            alert("done, row number:" + parseInt(currentRow));
+            return;
+        }
+
+        positions = getNextCatPostions(cats);
+
+        removeListenersFromOldRow();
+
+        drawNextCats(positions);
+
+        resetLastSelectedBoxAndIcon();
+
+        currentRow += 1;
+
+    }
+}
+
+function main() {
+    numberOfboxes = 5;
+
+    fillGrid()
+
+    initCats();
+
+    window.addEventListener("keydown", next);
+}
 
 
 
