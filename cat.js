@@ -1,6 +1,8 @@
 var grid = document.getElementById("grid");
 var boxMap = new Map();
 
+var pointer;
+var pointerDirection = -1;
 var currentRow = 1;
 var numberOfboxes;
 
@@ -58,7 +60,7 @@ function removeListenersFromOldRow() {
 }
 
 function fillGrid() {
-    for (i = 1; i <= 15; i++) {
+    for (i = 1; i <= numberOfboxes * 10; i++) {
         let boxes = [];
         for (j = 1; j < numberOfboxes + 1; j++) {
 
@@ -68,7 +70,11 @@ function fillGrid() {
             boxes.push(box);
 
             grid.appendChild(box);
+
         }
+        breakBox = document.createElement("div");
+        breakBox.className = "breakBox";
+        grid.appendChild(breakBox);
         boxMap.set(i, boxes)
     }
 }
@@ -92,7 +98,7 @@ function select(event) {
     }
 }
 
-function resetLastSelectedBoxAndIcon(){
+function resetLastSelectedBoxAndIcon() {
     lastSelectedBox = undefined;
     lastSelectedIcon = undefined;
 }
@@ -122,32 +128,58 @@ function getAllRemainingCats() {
     return currentCats;
 }
 
-function next(event) {
-    if (event.keyCode === 13) {
+function point() {
+    pointer = pointer + pointerDirection;
+    if (pointer == 1) {
+        pointerDirection = 1;
+        pointer = 2;
+    }
+    box = getBox(currentRow, pointer);
+    box.innerHTML = "I";
+}
+
+function getBox(row, id) {
+    return boxMap.get(row)[id - 1];
+
+}
+
+async function next(event) {
+    if (event.keyCode == 13) {
         console.log("enter");
+        cats = [new Cat(1111)];
+        while (cats.length >= 1) {
+            point();
 
-        cats = getAllRemainingCats();
+            cats = getAllRemainingCats();
 
-        if (cats.length < 1) {
-            alert("done, row number:" + parseInt(currentRow));
-            return;
+            if (cats.length < 1) {
+                alert("done, row number:" + parseInt(currentRow));
+                return;
+            }
+
+            positions = getNextCatPostions(cats);
+
+            removeListenersFromOldRow();
+
+            drawNextCats(positions);
+
+            resetLastSelectedBoxAndIcon();
+
+            currentRow += 1;
+
+            if (!event.ctrlKey) {
+                await new Promise(resolve => setTimeout(resolve, 250)); // 3 sec
+            }
         }
 
-        positions = getNextCatPostions(cats);
 
-        removeListenersFromOldRow();
-
-        drawNextCats(positions);
-
-        resetLastSelectedBoxAndIcon();
-
-        currentRow += 1;
 
     }
 }
 
 function main() {
-    numberOfboxes = 5;
+    numberOfboxes = 58;
+    pointer = numberOfboxes;
 
     fillGrid()
 
