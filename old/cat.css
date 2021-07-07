@@ -1,0 +1,30 @@
+#grid-wrapper{
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+#grid{
+    
+    display:flex;
+    flex-wrap: wrap;
+    flex-grow: 0;
+    flex-shrink: 1;
+    flex-basis:35em;
+    
+}
+
+.box{
+    display: flex;
+    border: 5px solid;
+    border-color: gold;
+    height: 70px;
+    width: 70px;
+    margin: 10px;
+    color: black;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: xx-large;
+}
